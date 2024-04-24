@@ -7,11 +7,12 @@ const {
     viewAllRoles,
     addDepartment,
     addEmployee,
-    addRole
+    addRole,
+    updateEmployeeRole
 } = require('./query')
 
 // asynced function that starts the interface of question chains
-const init = async () => {
+const startApp = async () => {
     try {
         // store the response from prompt
         const { choice } = await inquirer.prompt([
@@ -19,13 +20,14 @@ const init = async () => {
                 type: 'list',
                 name: 'choice',
                 message: 'What would you like to do?',
-                choice: [
+                choices: [
                     'View all departments',
                     'View all roles',
                     'View all employees',
                     'Add a department',
                     'Add a role',
                     'Add an employee',
+                    'Update employee',
                     'Exit',
                 ],
 
@@ -60,6 +62,9 @@ const init = async () => {
                 await addEmployee(employee.first_name, employee.last_name, employee.role_id, employee.manager_id)
                 console.log('New employee added successfully')
                 break;
+            case 'Update employee':
+                await promptUpdateEmployee()
+                break;    
             case 'Exit':
                 console.log('Goodbye!')
                 return;
@@ -67,13 +72,13 @@ const init = async () => {
                     console.log('Invalid')
         }
 
-        init()// call the function
+        startApp()// call the function
     
 
     }catch(err){
-        console.error('Error:', error)
+        console.error('Error:', err)
     }
-}// init end line
+}// startApp end line
 
 
 // make a function that has promps to get required input from the user for the new database
@@ -120,13 +125,79 @@ const promptAddRole = async () => {
 
 //employee
 
+
 const promptAddEmployee = async () => {
     //employe needs role id,   and manager id(show the user by their name)
     const roles = await viewAllRoles()  // get all roles array
-    const roleChoices = roles.map(role => ({name: role.title, value: role.id}))
+    const roleChoices = roles.map(role => ({ name: role.role_title, value: role.role_id }))
 
     //manager id
-    const employees = await viewAllEmployees()
-    const managerChoices = employees.map(employee => ({})) //UNDERWORK
+    const employees = await viewAllEmployees();
+    let managerChoices = [];
+    if (employees.length > 0) {
+        managerChoices = employees.map(employee => ({ name: `${employee.first_name} ${employee.last_name}`, value: employee.employee_id }))
+    } else {
+        managerChoices = [{ name: 'None', value: null }]
+    }
 
+    return inquirer.prompt([
+        {
+            type: 'input',
+            name: 'first_name',
+            message: 'First name of the employee'
+        },
+        {
+            type: 'input',
+            name: 'last_name',
+            message: 'Last name of the employee'
+        },
+        {
+            type: 'list',
+            name: 'role_id',
+            message: 'Role for this employee',
+            choices: roleChoices
+        },
+        {
+            type: 'list',
+            name: 'manager_id',
+            message: 'Manager for this employee',
+            choices: managerChoices
+        }
+    ])
 }
+
+
+//update
+const promptUpdateEmployee = async () => {
+    try{
+        //for the prompt= let user chose an employe (background return as id)
+        const employees = await viewAllEmployees()
+        const employeeOptions = employees.map(employee => ({ name: `${employee.first_name} ${employee.last_name}`, value: employee.employee_id}))
+          
+       //for the prompt = do the same for the role
+       const roles = await viewAllRoles()
+       const roleOptions = roles.map(role => ({ name: role.role_title, value: role.role_id }))
+        
+       //get users personal choices and assign both values to employeeID and RoleID basically
+       // u need to await to get these values from the user input
+       const {employeeId, roleId } = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'employeeId',
+            message: 'Choose an employee to update',
+            choices: employeeOptions
+        },
+        {
+            type: 'list',
+            name: 'roleId',
+            message: 'Choose a new role for the chosen employe',
+            choices: roleOptions
+        }
+       ])
+        //once the awaited inputs given thru prompt call the update function
+       await updateEmployeeRole(employeeId, roleId)
+       console.log('CONGRATS user is updated!')
+    }catch(err){console.error('Error', err)}
+}
+
+startApp()

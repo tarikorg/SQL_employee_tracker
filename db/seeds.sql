@@ -11,7 +11,7 @@ INSERT INTO role (title, salary, department_id) VALUES
 ('Electrical Engineer', 120000, 2),
 ('Finance Advisor', 80000, 3),
 ('Financial Analyst', 79000, 3),
-('Marketing Director' 109000, 4),
+('Marketing Director', 109000, 4),
 ('Marketing Coordinator', 52000, 4);
 
  

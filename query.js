@@ -1,19 +1,15 @@
 //connect database
 
-const { Client } = require('pg')
-const client = new Client({
+const { Pool } = require('pg')
+const client = new Pool({
     user: 'postgres',
     password: 'password',
     host: 'localhost',
     database: 'employee_details_db',
-    port: 4324,
+    port: 5432,
 })
 
-//connect to the database
-client.connect()
-.then(()=>{
-    console.log('connected to the SQL')
-})
+
 //then i am presented with : view all departments/roles/employees, add a department , add a role , add an employee
 
 
@@ -24,7 +20,18 @@ const viewAllDepartments = async () => {
 }
 
 const viewAllRoles = async () => {
-    const roles = await client.query('SELECT * FROM role');
+    // shows derpartment instead of its id
+    const roles = await client.query(`
+    SELECT 
+        role.id AS role_id,
+        role.title AS role_title,
+        role.salary,
+        department.name AS department_name
+    FROM 
+        role
+    INNER JOIN 
+        department ON role.department_id = department.id
+`);
     return roles.rows
 }
 
@@ -32,21 +39,21 @@ const viewAllEmployees = async () => {
     const employees = await client.query(
         `
     SELECT 
-        e.id AS employee_id, 
-        e.first_name, 
-        e.last_name, 
-        r.title AS job_title, 
-        d.name AS department,
-        r.salary,
-        CONCAT(m.first_name, ' ', m.last_name) AS manager
+        employee.id AS employee_id, 
+        employee.first_name, 
+        employee.last_name, 
+        role.title AS job_title, 
+        department.name AS department,
+        role.salary,
+        CONCAT(manager.first_name, ' ', manager.last_name) AS manager
     FROM 
-        employee e
+        employee
     INNER JOIN 
-        role r ON e.role_id = r.id
+        role ON employee.role_id = role.id
     INNER JOIN 
-        department d ON r.department_id = d.id
+        department ON role.department_id = department.id
     LEFT JOIN 
-        employee m ON e.manager_id = m.id
+        employee manager ON employee.manager_id = manager.id
   `
     );
     return employees.rows
@@ -69,6 +76,14 @@ const addEmployee = async (first_name, last_name, role_id, manager_id) => {
 
 
 // update employeRole
+// how?  ask user to chose an existent employee
+// then ask user to chose one of the avaiable(already existent) jobs
+// its updated
+//=================== function => take employe_id, new role_id(show user as role name not id)
+const updateEmployeeRole = async (employeeId, roleId) => {
+    const update = await client.query('UPDATE employee SET role_id = $1 WHERE id = $2 RETURNING *', [roleId, employeeId])
+    return update.rows[0]
+}
 
 module.exports = {
     viewAllDepartments,
@@ -77,4 +92,5 @@ module.exports = {
     addDepartment,
     addEmployee,
     addRole,
+    updateEmployeeRole,
 }
