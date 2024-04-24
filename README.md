@@ -12,7 +12,7 @@
 
 
   ## Visuals
-  <img src="Images/image-1.png">
+  <img src="Images/overview.png">
  
 
   # Description
@@ -36,8 +36,8 @@
   - Do a Pull Request
 
   ## Deployment
-  - Link to my repo: https://github.com/tarikorg/express_note_taker
-  - Deployed link: https://express-note-taker-g4y0.onrender.com
+  - Link to my repo: https://github.com/tarikorg/SQL_employee_tracker
+  - Deployed link: [WALKTHROUGH](https://drive.google.com/file/d/1D6kkFzZxMoI0mZQH1lL1h-nMHvLg2Pwr/view?usp=sharing)
    
   ## Questions
   - Github username: https://github.com/tarikorg
